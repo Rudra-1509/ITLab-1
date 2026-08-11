@@ -7,8 +7,26 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export const registerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ message: "All fields are required" });
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
+    }
+
+    if (password.length < 8 || password.length > 36) {
+  return res.status(400).json({
+    message: "Password must be between 8 and 36 characters",
+  });
+}
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Please provide a valid email address",
+      });
+    }
 
     const normalizedEmail = email.trim().toLowerCase();
 
