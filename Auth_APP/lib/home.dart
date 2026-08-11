@@ -2,6 +2,7 @@ import 'package:auth_app/auth_screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,22 +18,20 @@ class _HomePageState extends State<HomePage> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Call your backend logout endpoint
-      final response = await http.post(
+      // Tell backend to log out
+      await http.post(
         Uri.parse('https://itlab-1.onrender.com/api/auth/logout'),
       );
 
-      if (response.statusCode == 200) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Logged out successfully')),
-          );
+      // Delete token using SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('jwt_token');
 
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const GlassLoginPage()),
-            (Route<dynamic> route) => false,
-          );
-        }
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const GlassLoginPage()),
+          (Route<dynamic> route) => false,
+        );
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

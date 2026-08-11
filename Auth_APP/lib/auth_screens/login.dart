@@ -6,6 +6,7 @@ import 'package:auth_app/model.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GlassLoginPage extends StatefulWidget {
   const GlassLoginPage({super.key});
@@ -20,34 +21,37 @@ class _GlassLoginPageState extends State<GlassLoginPage> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
-
   void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
       try {
-        // Create the user object from the text controllers
         final user = User(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
 
-        // Send POST request to your Node.js login endpoint
         final response = await http.post(
-          // Replace '/login' with your actual endpoint route if different
           Uri.parse('https://itlab-1.onrender.com/api/auth/login'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(user.toJson()),
         );
 
         if (response.statusCode == 200) {
-          // Success
-          print('Login successful: ${response.body}');
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomePage()),
-            (Route<dynamic> route) =>
-                false, // Returning false removes all previous routes
-          );
+          final data = jsonDecode(response.body);
+          final token = data['token'];
+
+          if (token != null) {
+            // Save token using SharedPreferences
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('jwt_token', token);
+          }
+
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          }
         } else {
           // Failure (e.g., 400 Invalid credentials)
           final errorData = jsonDecode(response.body);

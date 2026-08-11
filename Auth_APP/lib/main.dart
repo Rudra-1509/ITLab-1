@@ -1,4 +1,4 @@
-import 'package:auth_app/auth_screens/login.dart';
+import 'package:auth_app/auth_screens/auth_wrapper.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
         scaffoldBackgroundColor: Colors.black,
         canvasColor: Colors.black,
       ),
-      home: const GlassLoginPage(),
+      home: const AuthWrapper(),
     );
   }
 }
